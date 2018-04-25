@@ -98,7 +98,7 @@ ENV/
 pylint.log
 
 # Ignore license key files
-license.keys
+data/license.keys
 /bots/y-bot/output/
 bots/y-bot/output/
 /bots/alice2/output/
@@ -118,3 +118,4 @@ bots/multibot/
 
 # Visual Studio code
 .vscode
+test/

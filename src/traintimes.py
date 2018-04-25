@@ -307,7 +307,7 @@ class NationalRailEnquiries(object):
 
 if __name__ == '__main__':
 
-    access_token = "e91cdcfa-b776-484a-825c-0c3a7b8e5341"
+    access_token = "XXXXXXXXXX"
 
     nre_client = NationalRailEnquiries(access_token)
 
