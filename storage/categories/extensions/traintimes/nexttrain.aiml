@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<aiml>
+    <!-- File: balance.aiml -->
+    <!--  -->
+    <!-- This AIML file is part of the Y-Bot knowledge base. -->
+    <!--  -->
+    <!-- Y-Bot is Copyright &copy; 2017 by Keith Sterling. -->
+    <!--
+    Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+    documentation files (the "Software"), to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software,
+    and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+    THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+    TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+    -->
+
+    <category>
+        <pattern>
+            * NEXT TRAIN FROM * TO *
+        </pattern>
+        <template>
+            <srai>
+                NEXT TRAIN FROM <star index="2" /> TO <star index="3" />
+            </srai>
+        </template>
+    </category>
+
+    <category>
+        <pattern>
+            NEXT TRAIN FROM * TO *
+        </pattern>
+        <template>
+            <think>
+                <set name="departure_name"><star index="1" /></set>
+                <set name="arrival_name"><star index="2" /></set>
+            </think>
+            <srai>GET DEPARTURE STATION CODE</srai>
+        </template>
+    </category>
+
+    <category>
+        <pattern>GET DEPARTURE STATION CODE</pattern>
+        <template>
+            <think>
+                <set name="topic">GETSTATIONCODE</set>
+                <set name="station_code_name">departurecode</set>
+                <set name="next_step">GET ARRIVAL STATION CODE</set>
+            </think>
+            <srai>
+                <extension path="traintimesy.extensions.traintimes.traintimes.TrainTimesExtension">
+                    CODE <get name="departure_name" />
+                </extension>
+            </srai>
+        </template>
+    </category>
+
+    <category>
+        <pattern>GET ARRIVAL STATION CODE</pattern>
+        <template>
+            <think>
+                <set name="topic">GETSTATIONCODE</set>
+                <set name="station_code_name">arrivalcode</set>
+                <set name="next_step">GET DEPARTURE TIME</set>
+            </think>
+            <srai>
+                <extension path="traintimesy.extensions.traintimes.traintimes.TrainTimesExtension">
+                    CODE <get name="arrival_name" />
+                </extension>
+            </srai>
+        </template>
+    </category>
+
+    <category>
+        <pattern>GET DEPARTURE TIME</pattern>
+        <template>
+            <srai>
+                <extension path="traintimesy.extensions.traintimes.traintimes.TrainTimesExtension">
+                    NEXT <get name="departurecode" /> <get name="arrivalcode" />
+                </extension>
+            </srai>
+        </template>
+    </category>
+
+    <category>
+       <pattern>
+           NRE NEXT RESPONSE OPERATOR * DEPART * ARRIVE *
+       </pattern>
+       <template>
+           The next <star index="1" /> train is due to leave <get name="departure_name" /> at <star index="2" /> and arrive in <get name="arrival_name" /> at <star index="3" />.
+           <srai>OPERATOR COMMENT <star index="1" /></srai>
+       </template>
+    </category>
+
+    <topic name="GETSTATIONCODE">
+
+        <category>
+            <pattern>OK *</pattern>
+            <template>
+                <think>
+                    <set><name><get name="station_code_name" /></name><star /></set>
+                </think>
+                <srai><get name="next_step" /></srai>
+            </template>
+        </category>
+
+        <category>
+            <pattern>ERR</pattern>
+            <template>Sorry, I'm not able to locate your departure station correctly.</template>
+        </category>
+
+        <category>
+            <pattern>SINGLE *</pattern>
+            <template>
+                Did you mean <star /> ?
+            </template>
+        </category>
+
+        <category>
+            <pattern>MULTIPLE *</pattern>
+            <template>
+                The closest matches to your statio are <star />, which did you mean?
+            </template>
+        </category>
+
+        <category>
+            <pattern>YES</pattern>
+            <template>Thanks</template>
+        </category>
+
+        <category>
+            <pattern>NO</pattern>
+            <template>OK, can you try again please?</template>
+        </category>
+
+    </topic>
+
+</aiml>

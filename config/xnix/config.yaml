@@ -1,0 +1,155 @@
+console:
+  bot:  bot
+  prompt: ">>>"
+  license_keys: $BOT_ROOT/config/license.keys
+  scheduler:
+    name: Scheduler1
+    debug_level: 50
+    add_listeners: False
+    remove_all_jobs: False
+
+#####################################################################################################
+#
+
+bot:
+    brain: brain
+
+    initial_question: Hi, how can I help you today?
+    initial_question_srai: YINITIALQUESTION
+    default_response: Sorry, I don't have an answer for that!
+    default_response_srai: YEMPTY
+    empty_string: YEMPTY
+    exit_response: So long, and thanks for the fish!
+    exit_response_srai: YEXITRESPONSE
+
+    override_properties: true
+
+    max_question_recursion: 1000
+    max_question_timeout: 60
+    max_search_depth: 100
+    max_search_timeout: 60
+
+    spelling:
+      classname: programy.spelling.norvig.NorvigSpellingChecker
+      corpus: $BOT_ROOT/spelling/corpus.txt
+      check_before: false
+      check_and_retry: false
+
+    conversations:
+      type: file
+      config_name: file_storage
+      #type: redis
+      #config_name: redis_storage
+      empty_on_start: true
+
+    file_storage:
+      dir: $BOT_ROOT/conversations
+
+    redis_storage:
+      host: localhost
+      port: 6379
+
+#####################################################################################################
+#
+
+brain:
+
+    # Overrides
+    overrides:
+      allow_system_aiml: true
+      allow_learn_aiml: true
+      allow_learnf_aiml: true
+
+    # Defaults
+    defaults:
+      default-get: unknown
+      default-property: unknown
+      default-map: unknown
+      learn-filename: $BOT_ROOT/aiml/traintimes-learnf.aiml
+
+    # Nodes
+    nodes:
+      pattern_nodes: $BOT_ROOT/config/pattern_nodes.conf
+      template_nodes: $BOT_ROOT/config/template_nodes.conf
+
+    # Binary
+    binaries:
+      save_binary: false
+      load_binary: false
+      binary_filename: /tmp/traintimes.brain
+      load_aiml_on_binary_fail: false
+
+    # Braintree
+    braintree:
+      file: /tmp/braintree.xml
+      content: xml
+
+    files:
+        aiml:
+            files: $BOT_ROOT/aiml
+            extension: .aiml
+            directories: true
+            errors:
+              file: /tmp/traintimes_errors.csv
+              format: csv
+              encoding: utf-8
+              delete_on_start: true
+            duplicates:
+              file: /tmp/traintimes_duplicates.csv
+              format: csv
+              encoding: utf-8
+              delete_on_start: true
+            conversation:
+              file: /tmp/traintimes-conversation.csv
+              format: csv
+              delete_on_start: true
+        sets:
+            files: $BOT_ROOT/sets
+            extension: .txt
+            directories: false
+        maps:
+            files: $BOT_ROOT/maps
+            extension: .txt
+            directories: false
+        denormal: $BOT_ROOT/config/denormal.txt
+        normal: $BOT_ROOT/config/normal.txt
+        gender: $BOT_ROOT/config/gender.txt
+        person: $BOT_ROOT/config/person.txt
+        person2: $BOT_ROOT/config/person2.txt
+        properties: $BOT_ROOT/config/properties.txt
+        rdf:
+            files:  $BOT_ROOT/rdf
+            extension: .txt
+            directories: true
+        preprocessors: $BOT_ROOT/config/preprocessors.conf
+        postprocessors: $BOT_ROOT/config/postprocessors.conf
+        regex_templates: $BOT_ROOT/config/regex-templates.txt
+        variables: $BOT_ROOT/config/default-variables.txt
+
+    services:
+        REST:
+            classname: programy.services.rest.GenericRESTService
+            method: GET
+            host: 0.0.0.0
+        Pannous:
+            classname: programy.services.pannous.PannousService
+            url: http://weannie.pannous.com/api
+        Pandora:
+            classname: programy.services.pandora.PandoraService
+            url: http://www.pandorabots.com/pandora/talk-xml
+        Wikipedia:
+            classname: programy.services.wikipediaservice.WikipediaService
+        DuckDuckGo:
+            classname: programy.services.duckduckgo.DuckDuckGoService
+            url: http://api.duckduckgo.com
+
+    dynamic:
+        variables:
+            gettime: programy.dynamic.variables.datetime.GetTime
+        sets:
+            numeric: programy.dynamic.sets.numeric.IsNumeric
+            roman:   programy.dynamic.sets.roman.IsRomanNumeral
+        maps:
+            romantodec: programy.dynamic.maps.roman.MapRomanToDecimal
+            dectoroman: programy.dynamic.maps.roman.MapDecimalToRoman
+
