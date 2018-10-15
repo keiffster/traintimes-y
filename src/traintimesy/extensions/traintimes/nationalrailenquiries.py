@@ -8,17 +8,23 @@ class NationalRailEnquiries(object):
 
     WSDL = 'https://lite.realtime.nationalrail.co.uk/OpenLDBWS/wsdl.aspx?ver=2017-10-01'
 
-    def __init__(self, access_token, station_codes_file=None):
-        self._header = self.create_header(access_token)
-        #self._client = self.create_client(NationalRailEnquiries.WSDL)
+    def __init__(self):
         self._stations_cache = []
         self._stations = {}
         self._codes = {}
+        self._header = None
+
+    def initialise(self, access_token, station_codes_file=None, wsdl=None):
+        self._header = self.create_header(access_token)
         if station_codes_file:
             self.load_station_codes(station_codes_file)
+        if wsdl is None:
+            self._client = self.create_client(NationalRailEnquiries.WSDL)
+        else:
+            self._client = self.create_client(wsdl)
 
     def create_client(self, wsdl):
-        return Client(NationalRailEnquiries.WSDL)
+        return Client(wsdl)
 
     def create_header(self, access_token):
         return {"AccessToken": access_token}
@@ -288,14 +294,24 @@ class NationalRailEnquiries(object):
                 for line in code_file:
                     if line and ',' in line:
                         parts = line.strip().split(",")
-                        station = parts[0]
-                        code = parts[1]
+                        station = parts[0].upper()
+                        code = parts[1].upper()
                         self._stations[code] = station
                         self._codes[station] = code
                         self._stations_cache.append(station)
             print("Loaded %d stations"%len(self._stations_cache))
         except Exception as e:
-            print("Failed to laod station codes from %s"%filename)
+            print("Failed to load station codes from %s"%filename)
+
+    def valid_station_code(self, code):
+        if code in self._stations:
+            return self._stations[code]
+        return None
+
+    def valid_station_name(self, name):
+        if name in self._codes:
+            return self._codes[name]
+        return None
 
     def match_station(self, candidate, limit=3, threshold=80):
         results = process.extract(candidate, self._stations_cache, limit=limit)
@@ -304,40 +320,3 @@ class NationalRailEnquiries(object):
             if match >= threshold:
                 matches.append(station)
         return matches
-
-if __name__ == '__main__':
-
-    access_token = "XXXXXXXXXX"
-
-    nre_client = NationalRailEnquiries(access_token)
-
-    nre_client.load_station_codes("station_codes.csv")
-
-    #response = nre_client.get_arrival_boards_with_details(10, "KGH")
-
-    #response = nre_client.get_arrival_and_departure_boards_with_details(10, "KGH")
-
-    #response = nre_client.get_arrival_board(10, "KGH")
-
-    #response = nre_client.get_arrival_and_departure_boards(10, "KGH")
-
-    #response = nre_client.get_departure_board_with_details(10, "KGH")
-
-    #response = nre_client.get_departure_board(20, "KGH")
-
-    #response = nre_client.get_fastest_departures("KGH", ["AUR"])
-
-    #response = nre_client.get_fastest_departures_with_details("KGH", ["AUR"])
-
-    #response = nre_client.get_next_departures("KGH", ["AUR"])
-
-    #response = nre_client.get_next_departures_with_details("KGH", ["AUR"])
-
-    #response = nre_client.get_service_details("su9TUVOTdGC5WRucnf/5jg==")
-
-    #print(response)
-
-    matches = nre_client.match_station("Dalston")
-    print(matches)
-    matches = nre_client.match_station("Dunfermline")
-    print(matches)
